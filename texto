@@ -1,0 +1,106 @@
+package gui;
+
+import java.awt.GridLayout;
+
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+
+import controlador.Controlador;
+import modelo.Edificio;
+import modelo.Persona;
+import modelo.Unidad;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+public class VentanaAlquilarUnidad {
+
+public Controlador controlador = Controlador.getControlador();
+	
+	public void abrirAlquilarUnidad() {
+		JFrame menu = new JFrame("menu");
+		menu.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		menu.setLayout(new GridLayout(1,1));
+		
+		JPanel panel = new JPanel();
+		panel.setLayout(new GridLayout(2,1));
+		
+		JComboBox<Edificio> boxEdificios = new JComboBox<>();
+		JComboBox<Unidad> boxUnidades = new JComboBox();
+		JComboBox<Persona> boxPersonas = new JComboBox();
+		
+		JButton btnAceptar = new JButton("Aceptar");
+		JButton btnSalir = new JButton("Salir");
+		
+		for(Edificio edificio:controlador.getEdificios()) {
+			boxEdificios.addItem(edificio);
+		}
+		
+		for(Unidad unidad:controlador.getUnidad()) {
+			boxUnidades.addItem(unidad);
+		}
+		
+		for(Persona persona: controlador.getPersona()) {
+			boxPersonas.addItem(persona);
+		}
+		
+		menu.add(panel);
+		panel.add(boxEdificios);
+		panel.add(boxUnidades);
+		panel.add(boxPersonas);
+
+		panel.add(btnAceptar);
+		panel.add(btnSalir);
+		
+		
+		
+		
+		menu.setVisible(true);
+		menu.pack();
+		menu.setLocationRelativeTo(null);
+		
+		btnAceptar.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Edificio edificioSeleccionado = (Edificio) boxEdificios.getSelectedItem();
+				Unidad unidadSeleccionada = (Unidad) boxUnidades.getSelectedItem();
+				Persona personaSeleccionada = (Persona) boxPersonas.getSelectedItem();
+				
+				if(edificioSeleccionado.getCodigo() == unidadSeleccionada.getEdificio().getCodigo()) {
+					String mensaje = "Edificio seleccionado:\n" +
+	                        "Código: " + edificioSeleccionado.getCodigo() + "\n" +
+	                        "Nombre: " + edificioSeleccionado.getNombre() + "\n" +
+	                        "Dirección: " + edificioSeleccionado.getDireccion() + "\n\n" +
+	                        "Unidad seleccionada:\n" +
+	                        "ID: " + unidadSeleccionada.getId() + "\n" +
+	                        "Piso: " + unidadSeleccionada.getPiso() + "\n" +
+	                        "Número: " + unidadSeleccionada.getNumero() + "\n\n" +
+	                        "Persona seleccionada:\n" +
+	                        "Documento: " + personaSeleccionada.getDocumento() + "\n" +
+	                        "Nombre: " + personaSeleccionada.getNombre();
+					
+					JOptionPane.showMessageDialog(menu, mensaje);
+				}else {
+					JOptionPane.showMessageDialog(menu, "Esa unidad ya esta reservada");
+				}
+				
+				
+			}
+			
+		});
+		
+		btnSalir.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				menu.dispose();
+				
+			}
+			
+		});
+}
+}
