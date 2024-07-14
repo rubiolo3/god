@@ -1,106 +1,137 @@
-package gui;
+> **1. Explicar cómo actúa MongoDB si el nodo primario de una réplica se cae.**
+> 
 
-import java.awt.GridLayout;
+*Si el nodo primario se cae Mongo realiza un proceso automatico para elegir un nuevo nodo primario de entre los nodos secundarios disponibles. Los nodos intercambian informacion para determinar cual sera el nuevo nodo primario. Una vez que se haya alcanzado una mayoria de votos, se selecciona un nuevo nodo primario. Los nodos secundarios actualizan su configuracion para reconocer al nuevo primario y establecen una conexion con el. Una vez elegido un nuevo nodo primario, la replica vuelve a estar disponible para aceptar operaciones de escritura y lectura.*
 
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
+> **2. Defina el concepto de consistencia eventual y sus diferencias con ACID.**
+> 
 
-import controlador.Controlador;
-import modelo.Edificio;
-import modelo.Persona;
-import modelo.Unidad;
+**Consistencia eventual**
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+*La consistencia eventual es un modelo que se utiliza en sistemas distribuidos donde multiples copias de datos se replican en diferentes nodos. En este modelo, no se garantiza que todas las replicas de los datos esten sincronizadas en tiempo real. Las actualizaciones se propagan de manera asincronica y pueden tomar cierto tiempo para que todos los nodos las reflejen. En resumen el modelo de consistencia eventual se basa en el principio de que si no se realizan mas actualizaciones en un conjunto de datos después de un tiempo suficiente, todas las replicas finalmente convergerán en un estados consistente. Esto significa que, aunque puede haber momentos en los que las replicas muestren diferentes valores, eventualmente llegaran a un acuerdo y mostraran la misma version de los datos.*
 
-public class VentanaAlquilarUnidad {
+**ACID**
 
-public Controlador controlador = Controlador.getControlador();
-	
-	public void abrirAlquilarUnidad() {
-		JFrame menu = new JFrame("menu");
-		menu.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		menu.setLayout(new GridLayout(1,1));
-		
-		JPanel panel = new JPanel();
-		panel.setLayout(new GridLayout(2,1));
-		
-		JComboBox<Edificio> boxEdificios = new JComboBox<>();
-		JComboBox<Unidad> boxUnidades = new JComboBox();
-		JComboBox<Persona> boxPersonas = new JComboBox();
-		
-		JButton btnAceptar = new JButton("Aceptar");
-		JButton btnSalir = new JButton("Salir");
-		
-		for(Edificio edificio:controlador.getEdificios()) {
-			boxEdificios.addItem(edificio);
-		}
-		
-		for(Unidad unidad:controlador.getUnidad()) {
-			boxUnidades.addItem(unidad);
-		}
-		
-		for(Persona persona: controlador.getPersona()) {
-			boxPersonas.addItem(persona);
-		}
-		
-		menu.add(panel);
-		panel.add(boxEdificios);
-		panel.add(boxUnidades);
-		panel.add(boxPersonas);
+Es el acrónimo que representa cuatro propiedades fundamentales en bases de datos : Atomicidad, Consistencia, Aislamiento y Durabilidad. 
 
-		panel.add(btnAceptar);
-		panel.add(btnSalir);
-		
-		
-		
-		
-		menu.setVisible(true);
-		menu.pack();
-		menu.setLocationRelativeTo(null);
-		
-		btnAceptar.addActionListener(new ActionListener() {
+La principal diferencia entre estos conceptos es el enfoque hacia la sincronización de datos y la garantía de consistencia. 
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Edificio edificioSeleccionado = (Edificio) boxEdificios.getSelectedItem();
-				Unidad unidadSeleccionada = (Unidad) boxUnidades.getSelectedItem();
-				Persona personaSeleccionada = (Persona) boxPersonas.getSelectedItem();
-				
-				if(edificioSeleccionado.getCodigo() == unidadSeleccionada.getEdificio().getCodigo()) {
-					String mensaje = "Edificio seleccionado:\n" +
-	                        "Código: " + edificioSeleccionado.getCodigo() + "\n" +
-	                        "Nombre: " + edificioSeleccionado.getNombre() + "\n" +
-	                        "Dirección: " + edificioSeleccionado.getDireccion() + "\n\n" +
-	                        "Unidad seleccionada:\n" +
-	                        "ID: " + unidadSeleccionada.getId() + "\n" +
-	                        "Piso: " + unidadSeleccionada.getPiso() + "\n" +
-	                        "Número: " + unidadSeleccionada.getNumero() + "\n\n" +
-	                        "Persona seleccionada:\n" +
-	                        "Documento: " + personaSeleccionada.getDocumento() + "\n" +
-	                        "Nombre: " + personaSeleccionada.getNombre();
-					
-					JOptionPane.showMessageDialog(menu, mensaje);
-				}else {
-					JOptionPane.showMessageDialog(menu, "Esa unidad ya esta reservada");
-				}
-				
-				
-			}
-			
-		});
-		
-		btnSalir.addActionListener(new ActionListener() {
+Consistencia ACID
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				menu.dispose();
-				
-			}
-			
-		});
-}
-}
+Consistencia eventual
+
+*Garantiza la consistencia en todo momento, por lo que solo permite un estado consistente para los datos en todo momento.*
+
+Sincronización ACID
+
+*Se basa en una sincronización inmediata y atómica de las transacciones, asegurando que todos los cambios se reflejan en las replicas antes de considerar la transacción confirmada.*
+
+*Permite desfase temporal entre las replicas, significa que en ciertos momentos las replicas puede mostrar diferentes valores antes de converger hacia un estado consistente.*
+
+Sincronización en C.E
+
+*Permite una replicación asincrónica y acepta que puede haber desfase temporal entre las replicas antes de que alcance un estado consistente.*
+
+> **3. Enumere  ventajas  y  desventajas  de  implementar  bases  de  datos  con  Neo4j  con 
+respecto a su implementación en un gestor relacional.**
+> 
+
+**Ventajas**
+
+Modelos de datos flexibles
+
+Alto rendimiento en consultas de relaciones
+
+Escalabilidad horizontal
+
+Facilidad de navegación de relaciones
+
+**Desventajas**
+
+- Uso eficiente para datos no relacionales
+    - Si los datos no están altamente conectados o no dependen en gran medida de las relaciones, en estos casos el gestor relacional es mas eficiente.
+    - Neo4j puede ser excesivo y complejo para casos de uso simples o con poca dependencia de las relaciones.
+- Costo computacional y de almacenamiento
+    - Almacenamiento y procesamiento de datos de grafo puede requerir mas recursos en comparación con un gestor tradicional.
+- Madurez y ecosistema de herramientas
+    - Adopción y madurez puede ser menor en comparación con los gestores relacionales mas establecidos.
+
+> **4. Describa los elementos esenciales del modelo de datos basado en grafos y explica 
+los criterios generales de diseño.**
+> 
+
+Los elementos esenciales en el modelo de grafos son los nodos, entidades individuales de un modelo de datos de grafo y que representan objetos o entidades del mundo real. Pueden contener propiedades que describen al objeto. Otro de los elementos son las relaciones, estas conectan de nodo a nodo y representan las interacciones o conexiones entre ellos, pueden ser unidireccionales como bidireccionales.
+
+Los criterios generales que se tienen que seguir a la hora de modelar en una BD grafos es principalmente **identificar los nodos y relaciones claves**, identificando los objetos o entidades clave que se representaran como nodos y las interacciones clave que se representaran como relaciones. **Definir las propiedades de los nodos y relaciones**, es decir que para cada nodo y relación se debe determinar las propiedades o atributos que se almacenaran. Posterior a eso **establecer la cardinalidad de las relaciones**, definir cuantos nodos pueden estar conectados a través de esa relación. Luego **considerar la densidad de las relaciones**, cuantas conexiones existen en relación con la cantidad total de nodos para finalizar con la **planificación de consultas y su análisis**, dejar establecido cuales serán las mejores rutas y patrones para las consultas mas comunes y, a su vez, a optimizar el diseño del modelo de datos para consultas especificas.
+
+> **5. ¿De qué partes consta la KEY de una fila almacenada en una familia de columnas 
+en Cassandra? Explica qué efectos tiene cada una sobre la base de datos.**
+> 
+
+*Consta de dos partes principales que son : Clave de partición y clave de cluster.*
+
+*La primera se utiliza para determinar la ubicación física de los datos en el cluster distribuido de Cassandra. El efecto de la clave es para determinar la distribución y la capacidad de escalabilidad de los datos.* 
+
+*La segunda se utiliza para ordenar los datos dentro de una partición, la partición puede contener múltiples filas con diferentes claves de cluster, y los datos se almacenan y se recuperan en orden según el valor de la clave de cluster. El efecto de la clave es determinar el orden y la organización de los datos dentro de una partición. Al definir la clave de cluster correctamente, se pueden lograr consultas más rápidas y eficientes al acceder a los datos en el orden deseado.*
+
+> **6. Explique en qué consiste Map Reduce. Ejemplifique.**
+> 
+
+*Es un modelo de programación y procesamiento de datos diseñado para procesar grandes volúmenes de datos en entornos distribuidos.*
+
+*El modelo se compone de dos etapas :* 
+
+***Map (mapeo)** : los datos de entrada se dividen en fragmentos mas pequeños y se procesan de forma paralela en múltiples nodos de un cluster distribuido. Cada nodo realiza una funcion map en los datos de entrada y genera pares clave-valor como salida intermedia. Estos pares clave-valor se agrupan según la clave asociada.*
+
+*Ejemplo : Tenemos un conjunto de registros de ventas y queremos calcular el total de ventas por categoría de producto. En la etapa de MAP, cada nodo tomaría un fragmento de registros y emitiría pares clave-valor donde la clave seria la categoría del producto y el valor seria la cantidad de ventas asociada a esta categoría.*
+
+***Reduce** : los pares clave-valor generados en la etapa de MAP se agrupan y se envían a los nodos para la función de reducción. Los nodos combinan y procesan los datos de entrada para generar una salida final consolidada.*
+
+*Ejemplo : los nodos recibirían los pares clave-valor en la etapa de Map, y cada nodo calcularía el total de ventas para cada categoría de producto mediante la suma de los valores asociado a cada clave.* 
+
+> **7. Describa las  técnicas de modelado  de una base de  datos  de familias  de  columnas 
+basado en las recomendaciones de Chebokto.**
+> 
+
+*Las principales tecnicas son :*
+
+*Desnormalización : Esto implica duplicar los datos necesarios en varias tablas o familia de columnas para evitar la necesidad de realizar múltiples consultas o unir tablas para acceder a los datos relacionados. Ayudando asi al rendimiento y la eficiencia de datos en la recuperación de datos.*
+
+*Modelado por consultas : El modelado se realice en cuenta a las consultas que se realizaran con mayor frecuencia en la aplicacion, implica diseñar la estructura de los datos y las tablas para que coincidan con las consultas.*
+
+*Clave de particion adecuada : para mejorar escalabilidad y distribucion de datos en cluster*
+
+*Clave de cluster adecuada : mejorar eficiencia de las consultas y el acceso a los datos.*
+
+> **8. Explique la diferencia entre las restricciones UNIQUE y KEY NODE en Cypher**
+> 
+
+*UNIQUE : garantiza que los valores de una propiedad sean unicos en todo el grafo. Cuando se establece una UNIQUE en una propiedad especifica, no puede haber duplicados de ese valor en ninguna instancia de nodo o relacion dentro del grafo. EJ : UNIQUE en propiedad “username”, de esta forma garantizamos que no haya duplicados de nombres de usuario en ningun nodo.*
+
+*KEY NODE : se utiliza para garantizar que un nodo especifico tenga una propiedad con un valor unico en todo el grafo. Se aplica a un nodo en particular y no se extiende a otros nodos en el grafo. EJ : nodo estacion central, solo existe un nodo con el nombre estacion central en todo el grafo.*
+
+> **9. Enumere, al menos, 3 ventajas y 3 desventajas de Cassandra con respecto a los sistemas de bases de datos relacionales**
+> 
+
+**Ventajas**
+
+Escalabilidad horizontal
+
+Tolerancia a fallos y alta disponibilidad 
+
+Rendimiento de escritura y lectura masiva
+
+**Desventajas**
+
+Modelado de datos complejo
+
+No admite consultas complejas
+
+Transacciones ACID limitadas
+
+> **10. Defina el concepto de Sharding y cómo afecta al rendimiento de las consultas.**
+> 
+
+El particionamiento horizontal es una tecnica de BD para dividir y distribuir los datos a traves de multiples nodos o servidores. Divide los datos en fragmentos mas pequeños llamados particiones y los distribuye en diferentes nodos de manera distribuida.
+
+Afecta dividiendo la consulta y llevandolo a los nodos correspondientes que contiene las particiones de datos relevantes. Cada nodo se ejecuta en paralelo en su conjunto de datos local y devuelve los resultados. Luego, los resultados se combinan y se presentan al usuario final.
