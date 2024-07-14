@@ -1,0 +1,110 @@
+from neo4j import GraphDatabase
+
+def conectar():
+    client=GraphDatabase.driver('neo4j://localhost:7687',auth=('neo4j','qwertyui'))
+    return client
+
+def add_persona(db,nombre,doc,tel,tipo):
+    db.run("create (:persona {nombre:$nombre , doc:$doc, tel:$tel})-[:delito]->(:delito {tipo:$tipo})",nombre=nombre,doc=doc,tel=tel,tipo=tipo)
+
+def add_llamada(db,nombre,origen,destino,fecha,hora):
+    db.run(("match (p:persona {nombre:$nombre}) create (t:telefono {origen:$origen, destino:$destino, fecha:$fecha, hora:$hora})-[:origen]->(p)"),
+    nombre=nombre,origen=origen,destino=destino,fecha=fecha,hora=hora)
+
+def bienes(db,nombre,tipo_bien):
+    db.run(("match (p:persona {nombre:$nombre}) create (t:bien {tipo_bien:$tipo_bien})<-[:alquila]-(p)"),
+    nombre=nombre,tipo_bien=tipo_bien)
+
+def hecho_culpable(db,nombre,descripcion,fecha,hora):
+    db.run(("match (p:persona {nombre:$nombre}) create (h:hecho {descripcion:$descripcion, fecha:$fecha, hora:$hora})-[:culpable]->(p)"),nombre=nombre,descripcion=descripcion,fecha=fecha,hora=hora)
+
+def hecho_sospechoso(db,nombre,descripcion,fecha,hora):
+    db.run(("match (p:persona {nombre:$nombre}) create (h:hecho {descripcion:$descripcion, fecha:$fecha, hora:$hora})-[:sospechoso]->(p)"),nombre=nombre,descripcion=descripcion,fecha=fecha,hora=hora)
+
+#para mejorar: hechos puede tener un id
+def docs(db,descripcion,tipo):
+    db.run(("match (h:hecho {descripcion:$descripcion}) create (d:doc {tipo:$tipo})-[:respalda]->(h)"),descripcion=descripcion,tipo=tipo)
+
+
+def operacion(db,nombre,pais):
+    db.run(("match (p:persona {nombre:$nombre}) create (f:pais {nombre:$pais})<-[:pais]-(p)"),nombre=nombre, pais=pais)
+
+
+def hechos_sin_sospechosos(db):
+    resultado=db.run("match (h:hecho) where not (h)-[:sospechoso]->(:persona) return h.descripcion as hecho")
+    for i in resultado:
+        descripcion=i['hecho']
+        print(descripcion)
+
+def sospechosos_hecho(db,hecho):
+    resultado=db.run(("match (p:persona)<-[:sospechoso]-(h:hecho {descripcion:$hecho}) return p.nombre as nombre, h.descripcion as descripcion"),hecho=hecho)
+    for i in resultado:
+        persona=i['nombre']
+        descripcion=i['descripcion']
+        print(f"persona: {persona}, descripcion: {descripcion}")
+
+def doc_respalda(db,nombre):
+    resultado=db.run(("match (d:doc)-[:respalda]->(h:hecho)-[:sospechoso]->(p:persona {nombre:$nombre}) return p.nombre as nombre, d.tipo as prueba "),nombre=nombre)
+    for i in resultado:
+        pruebas=i['prueba']
+        persona=i['nombre']
+        print(f'{persona}, doc:{pruebas}')
+
+def bienes_usuario(db,nombre):
+    resultado=db.run(("match (p:persona {nombre:$nombre})-[:alquila]->(b:bien) return p.nombre as nombre, b.tipo_bien as bien"),nombre=nombre)
+    for i in resultado:
+        nombres=i['nombre']
+        bien=i['bien']
+        print(f'{nombres},bienes: {bien}')
+
+
+def main():
+    db=conectar()
+
+    #db.session().execute_write(add_persona,'fer',1212,4343478,'robo')
+    #db.session().execute_write(add_persona,'agus',775,45478,'asesinato')
+    #db.session().execute_write(add_persona,'bauti',176,13478,'roba corazones')
+    #db.session().execute_write(add_persona,'fifa',1232,54458,'ve la kings league')
+
+    #db.session().execute_write(add_llamada,'agus',1234,312,'2002-12-12','12:12')
+    #db.session().execute_write(add_llamada,'bauti',1234,312,'2022-12-12','12:12')
+    #db.session().execute_write(add_llamada,'fer',1234,312,'2001-12-12','12:12')
+    #db.session().execute_write(add_llamada,'fifa',1234,312,'2004-12-12','12:12')
+
+    #db.session().execute_write(bienes,'agus','casa')
+    #db.session().execute_write(bienes,'fer','playita')
+    #db.session().execute_write(bienes,'bauti','todo trenque')
+    #db.session().execute_write(bienes,'fifa','cancha de kings league')
+
+    #db.session().execute_write(hecho_culpable,'agus','robo en shopping','2022-12-12','10:12')
+    #db.session().execute_write(hecho_culpable,'fer','robo en local','2022-12-12','10:12')
+    #db.session().execute_write(hecho_sospechoso,'fifa','matar a ibai','2022-12-12','10:12')
+    #db.session().execute_write(hecho_sospechoso,'bauti','enamorar a un pampeano','2022-12-12','10:12')
+    
+
+    #db.session().execute_write(docs,'robo en shopping','camaras de seguridad')
+    #db.session().execute_write(docs,'robo en local','videos de terceros')
+    #db.session().execute_write(docs,'matar a ibai','arma homicida, trofeo de la kings')
+    #db.session().execute_write(docs,'enamorar a un pampeano','besos entre los 2')
+    
+    #db.session().execute_write(operacion,'agus','francia')
+    #db.session().execute_write(operacion,'fer','bolivia')
+    #db.session().execute_write(operacion,'bauti','trenque es un pais aparte')
+    #db.session().execute_write(operacion,'fifa','espana')
+    
+
+    #Hechos en los que no se posee sospechosos
+    #db.session().execute_read(hechos_sin_sospechosos)
+
+    #Sospechosos de un hecho determinado
+    #db.session().execute_read(sospechosos_hecho,'matar a ibai')
+
+    #doc que respalda el el caso de bauti 
+    #db.session().execute_read(doc_respalda,'bauti')
+
+    #bienes de personas especifica
+    #db.session().execute_read(bienes_usuario,'agus')
+
+
+
+main()
