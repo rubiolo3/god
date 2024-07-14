@@ -1,0 +1,99 @@
+from pymongo import MongoClient
+
+def conectar():
+    cliente = MongoClient('localhost', 27017)
+    db = cliente['mongo1']
+    return db
+
+usuarios = [
+    {'nombre': 'Cacho', 'apellido': 'verenjena', 'modo': 'solista', 'ciudad':'los angeles', 'pais':'usa', 'habilidades':[{'descripcion': 'guitarrista', 'tipo':'rockero', 'nivel':'superlativo'}]},
+    {"nombre": "David", "apellido": "Lebon", "modo": "Parte de un grupo", "habilidades": [{"descripcion": "bajista", "tipo": "blusero", "nivel": "muy bueno"}]},
+    {"nombre": "Juana", "apellido": "Molina", "modo": "Banda propia", "ciudad": "Montevideo", "pais": "Uruguay", "habilidades": [{"descripcion": "voz", "nivel": "superlativa"}]},
+    {"nombre": "Angus", "apellido": "Young", "ciudad": "Glasgow", "pais": "Escocia", "modo": "Showman", "habilidades": [{"descripcion": "guitarrista", "nivel": "increíble"}]},
+    {"nombre": "Ghost", "ciudad": "Linköping", "pais": "Suecia", "modo": "Banda", "habilidades": [{"descripcion": "Increíble show"}], "inicio": 2006},
+    {"nombre": "Rammstein", "ciudad": "Berlin", "pais": "Alemania", "musicos": [{"nombre": "Christoph Schneider"}, {"nombre": "Oliver Riedel"}], "inicio": 1990, "modo": "Banda"}
+]
+
+def createUsuario(db, usuarios):
+    db['usuarios'].insert_many(usuarios)
+
+
+def get_usuarios(db):
+    return list(db['usuarios'].find({},{'_id': 0}))
+
+def removeUsuario(db, nombre):
+    db['usuarios'].delete_one({'nombre': nombre})
+
+def get_usuario(db,nombre):
+    return db['usuarios'].find_one({'nombre':nombre},{'_id':0})
+
+def get_guitarristas(db):
+    return list(db['usuarios'].find({'habilidades.descripcion':'guitarrista'},{'_id':0}))
+
+def get_blusero(db):
+    return list(db['usuarios'].find({'habilidades.tipo':'blusero'},{'_id':0}))
+
+def formacion(db):
+    return list(db['usuarios'].find({'inicio': {'$gte':2000, '$lte':2010}},{'_id':0}))
+
+def agregar_habilidad(db, nombre, habilidad):
+    db['usuarios'].update_one({'nombre': nombre}, {'$push': {'habilidades': habilidad}})
+
+def agregar_ciudad(db, nombre, ciudad):
+    db['usuarios'].update_one({'nombre': nombre}, {'$set': {'ciudad': ciudad}})
+
+discos=['disco1','disco2','disco3']
+
+def agregar_discos(db, nombre, discos):
+    db['usuarios'].update_one({'nombre': nombre}, {'$push':{'discos':{'$each': discos}}})
+
+musicos=[{'nombre': 'marianelo'}, {'nombre': 'sangangalongo'}]
+
+def agregar_musicos(db,nombre, musicos):
+    db['usuarios'].update_one({'nombre': nombre},{'$push':{'musicos':{'$each': musicos}}})
+
+def cambiar_pais(db, nombre, pais):
+    db['usuarios'].update_one({'nombre': nombre},{'$set':{'pais': pais}})
+
+def eliminar_disco(db, nombre, disco):
+    db['usuarios'].update_one({'nombre': nombre}, {'$pull':{'discos': disco}})
+
+def cambiar_nivel_habilidad(db, nombre, descripcion, nivel):
+    db['usuarios'].update_one({'nombre': nombre, 'habilidades.descripcion': descripcion}, {'$set':{'habilidades.$.nivel':nivel}})
+
+comentarios = [{'usuario': 'elpapu', 'comentario': 'la banda me parece terrible garompa, que queres que te diga'},{'usuario':'negrus','texto':'aguante el country vieja'},{'usuario':'fifas','texto':'pense q aca era la kings league'}]
+
+def agregar_comentarios(db, nombre, comentarios):
+    db['usuarios'].update_one({'nombre': nombre}, {'$push': {'comentarios':{'$each': comentarios}}})
+
+def borrar_comentarios(db, nombre, usuario):
+    db['usuarios'].update_one({'nombre': nombre}, {'$pull': {'comentarios':{'usuario': usuario}}})
+
+def main():
+    db = conectar()
+
+
+
+    usuarios = get_usuarios(db)
+    for i in usuarios:
+        print(i)
+
+
+    guitarristas = get_guitarristas(db)
+    for i in guitarristas:
+        print(i)
+
+    blusero = get_blusero(db)
+    for i in blusero:
+        print(i)
+
+    formacion_banda = formacion(db)
+    for i in formacion_banda:
+        print(i)
+
+
+
+
+
+
+main()
