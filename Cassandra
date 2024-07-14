@@ -1,0 +1,115 @@
+from uuid import UUID, uuid4
+from cassandra.cluster import Cluster
+
+
+def conectar():
+    client = Cluster(['127.0.0.1'], 9042)
+    db = client.connect()
+    return db
+
+
+def crear_keyspace(db):
+    db.execute("""
+    create keyspace if not exists casej1 with replication={'class':'SimpleStrategy','replication_factor':'1'}""")
+
+def crear_tabla_1(db):
+    db.execute("""
+               create table if not exists casej1.tabla1(
+               id uuid,
+               nombre text,
+               email text,
+               password text,
+               primary key(id)
+               )
+    """)
+
+    
+def tabla_1(db, nombre, email, password):
+    id=uuid4()
+    db.execute("""
+               insert into casej1.tabla1 (id,nombre,email,password) values(%s, %s, %s, %s)
+               """,(id,nombre,email,password,))
+    
+
+def get_tabla_1(db, user_id):
+    resultado = db.execute("""
+                           select * from casej1.tabla1 where id=%s""",(UUID(user_id),))
+    return resultado
+
+
+def crear_tabla_2(db):
+    db.execute("""
+               create table if not exists casej1.tabla2(
+               id uuid,
+               titulo text,
+               tags text,
+               descripcion text,
+               primary key(id)
+               )
+    """)
+
+def tabla_2(db, titulo, tags, descripcion):
+    id=uuid4()
+    db.execute("""
+               insert into casej1.tabla2(id,titulo,tags,descripcion)values(%s,%s,%s,%s)""", (id,titulo,tags,descripcion,))
+    
+
+def get_tabla_2(db, user_id):
+    resultado = db.execute("""
+                           select * from casej1.tabla2 where id=%s""",(UUID(user_id),))
+    return resultado
+
+def crear_tabla_3(db):
+    db.execute("""
+               create table if not exists casej1.tabla3(
+               nombre text,
+               fecha timestamp,
+               nombre_producto text,
+               id_producto uuid,
+               descripcion text,
+               primary key(nombre, id_producto)
+               )
+    """)
+
+def tabla_3(db, nombre, fecha, nombre_producto,descripcion):
+    id = uuid4()
+    db.execute("""
+               insert into casej1.tabla3(nombre, fecha, nombre_producto, id_producto, descripcion) values(%s,%s,%s,%s,%s)
+               """,(nombre,fecha,nombre_producto,id,descripcion,))
+    
+
+def get_tabla_3(db, usuario):
+    resultado = db.execute("""
+                           select * from casej1.tabla3 where nombre=%s""",(usuario,))
+    return resultado
+
+
+def main():
+    db = conectar()
+    #crear_keyspace(db)
+
+
+    #crear_tabla_1(db)
+    #tabla_1(db, 'bauti', 'bauti@gmail.com', '1234')
+
+    resultado = get_tabla_1(db, '2d6eeb7b-254e-4b0a-a72d-1532982c620e')
+    for i in resultado:
+        print(i)
+
+    #crear_tabla_2(db)
+    #tabla_2(db, 'papa', 'comida', 'papa gorda y rica')
+    #tabla_2(db, 'pala', 'herramienta', 'la que no levantas')
+
+    resultado2 = get_tabla_2(db, 'f0ab2157-eac7-4359-9227-b2c5fcad591b')
+    for i in resultado2:
+        print(i)
+
+    #crear_tabla_3(db)
+    #tabla_3(db, 'elpapu', '2003-04-25', 'papa', 'muy rica pero llena de tierra')
+    #tabla_3(db, 'faifer', '2005-10-30', 'ricota', 'toda natural y rica')
+
+    resultado3 = get_tabla_3(db, 'faifer')
+    for i in resultado3:
+        print(i)
+
+main()  
